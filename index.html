@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html class="" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Ambi - Panel de Administración</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2563eb",
+                        "institutional": "#181F41",
+                        "primary-dark": "#181f41",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111421",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1e2336",
+                        "sidebar-light": "#ffffff",
+                        "sidebar-dark": "#1a1d2d",
+                        "text-main": "#0e101b",
+                        "text-primary-light": "#0e101b",
+                        "text-secondary": "#4e5a97",
+                        "text-secondary-light": "#4e5a97",
+                        "text-primary-dark": "#f8f9fc",
+                        "text-secondary-dark": "#9ca3af",
+                        "border-light": "#d0d4e7",
+                        "border-dark": "#2d3748",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Shared Styles */
+        body { font-family: 'Public Sans', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .material-symbols-outlined.filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .toggle-checkbox:checked { right: 0; border-color: #2563eb; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #2563eb; }
+        .transition-colors { transition-property: background-color, border-color, color, fill, stroke; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms; }
+    </style>
+
+    <!-- React Dependencies -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/history@5/umd/history.development.js"></script>
+    <script src="https://unpkg.com/react-router@6.3.0/umd/react-router.development.js"></script>
+    <script src="https://unpkg.com/react-router-dom@6.3.0/umd/react-router-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-text-main dark:text-white font-display antialiased h-screen overflow-hidden">
+    <div id="root" class="h-full"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { createRoot } = ReactDOM;
+        const { MemoryRouter, Routes, Route, Link, useNavigate, useLocation } = ReactRouterDOM;
+
+        // --- Common Components ---
+
+        const Sidebar = ({ active }) => {
+            const navItems = [
+                { name: 'Estadísticas', path: '/', icon: 'bar_chart' },
+                { name: 'Fuentes Oficiales', path: '/fuentes', icon: 'account_balance' },
+                { name: 'Recursos', path: '/recursos', icon: 'folder_open' },
+                { name: 'Cápsulas', path: '/capsulas', icon: 'grid_view' }, // Added for Screen 4
+                { name: 'Ajustes', path: '/ajustes', icon: 'settings' },
+            ];
+
+            return (
+                <aside className="w-64 bg-institutional flex flex-col shrink-0 transition-all duration-300 ease-in-out h-full z-20 shadow-xl hidden lg:flex">
+                    <div className="h-20 flex items-center gap-3 px-6 border-b border-white/10 shrink-0">
+                        <div className="size-8 rounded bg-primary flex items-center justify-center text-white font-bold text-xl">A</div>
+                        <span className="text-white font-bold text-lg tracking-wide">ambi</span>
+                    </div>
+                    
+                    {/* User Profile Summary (from Screen 1) */}
+                    <div className="p-6 pb-2">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="bg-center bg-no-repeat bg-cover rounded-full size-10 border-2 border-primary" style={{backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuDG6Qxl3fKGn8j3GTto5V_PlfDzldoeWaNkYHC0T4kHz2i6jLUvx4Zj1rHgV9yMkHyvFvEMR4gHBcbtFItDl_MDvvXdIKeBFX8-s1Ltx5TJQxKav1URTAnaxnjy0YDiPjk2-W4Y-wcxwUM3_IDGbkB_A_RezgCaULQvdmQzvhq6DgjkS9WhLkKCIwT9XMjzuiwOM3H25_BPEcxgx0sxaW-C67VKp9uPCtHQ-lCgVQalF9km8i3_acm6Ysn7ucvJLEgxnP1jf9hxz80H")'}}></div>
+                            <div className="flex flex-col overflow-hidden">
+                                <h1 className="text-white text-sm font-semibold truncate">Admin User</h1>
+                                <p className="text-white/60 text-xs truncate">Gestión de Recursos</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <nav className="flex-1 overflow-y-auto px-4 py-2 space-y-1">
+                        {navItems.map((item) => {
+                            const isActive = active === item.path;
+                            return (
+                                <Link 
+                                    key={item.name}
+                                    to={item.path}
+                                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group ${
+                                        isActive 
+                                        ? "bg-primary text-white shadow-lg shadow-primary/30" 
+                                        : "text-white/70 hover:bg-white/10 hover:text-white"
+                                    }`}
+                                >
+                                    <span className={`material-symbols-outlined text-[20px] ${isActive ? '' : ''}`}>{item.icon}</span>
+                                    <span className="text-sm font-medium">{item.name}</span>
+                                </Link>
+                            );
+                        })}
+                    </nav>
+
+                    <div className="p-4 border-t border-white/10 mt-auto">
+                        <button className="flex items-center gap-3 px-3 py-2 w-full rounded-lg text-red-300 hover:bg-white/5 transition-colors">
+                            <span className="material-symbols-outlined text-[20px]">logout</span>
+                            <span className="text-sm font-medium">Cerrar Sesión</span>
+                        </button>
+                    </div>
+                </aside>
+            );
+        };
+
+        const MobileHeader = () => (
+            <div className="lg:hidden h-16 bg-white dark:bg-surface-dark border-b border-gray-200 dark:border-gray-800 flex items-center px-4 justify-between shrink-0 z-20">
+                <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-gray-700 dark:text-white">menu</span>
+                    <span className="font-bold text-institutional dark:text-white text-lg">ambi</span>
+                </div>
+                <div className="size-8 rounded-full bg-cover bg-center" style={{backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuDG6Qxl3fKGn8j3GTto5V_PlfDzldoeWaNkYHC0T4kHz2i6jLUvx4Zj1rHgV9yMkHyvFvEMR4gHBcbtFItDl_MDvvXdIKeBFX8-s1Ltx5TJQxKav1URTAnaxnjy0YDiPjk2-W4Y-wcxwUM3_IDGbkB_A_RezgCaULQvdmQzvhq6DgjkS9WhLkKCIwT9XMjzuiwOM3H25_BPEcxgx0sxaW-C67VKp9uPCtHQ-lCgVQalF9km8i3_acm6Ysn7ucvJLEgxnP1jf9hxz80H")'}}></div>
+            </div>
+        );
+
+
+        // --- Screen 1: Dashboard (Panel de Estadísticas) ---
+        
+        const Dashboard = () => {
+            return (
+                <div className="flex h-screen overflow-hidden">
+                    <Sidebar active="/" />
+                    <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-background-light dark:bg-background-dark">
+                        <MobileHeader />
+                        
+                        <header className="bg-surface-light dark:bg-surface-dark border-b border-gray-200 dark:border-gray-800 px-8 py-5 flex flex-col gap-4 shrink-0 z-10 hidden lg:flex">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div>
+                                    <h1 className="text-institutional dark:text-white text-2xl font-bold tracking-tight">Panel de Estadísticas</h1>
+                                    <p className="text-text-secondary text-sm mt-1">Visión general del uso de la aplicación y progreso de microcápsulas.</p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <button className="flex items-center justify-center gap-2 h-10 px-4 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors">
+                                        <span className="material-symbols-outlined text-[20px]">download</span>
+                                        <span>Exportar Reporte</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-3 pt-2">
+                                <div className="relative group">
+                                    <button className="flex h-9 items-center gap-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 transition-colors">
+                                        <span className="material-symbols-outlined text-gray-500 text-[18px]">calendar_today</span>
+                                        <span className="text-text-main text-sm font-medium dark:text-gray-200">Últimos 30 días</span>
+                                        <span className="material-symbols-outlined text-gray-500 text-[18px]">expand_more</span>
+                                    </button>
+                                </div>
+                                <div className="relative group">
+                                    <button className="flex h-9 items-center gap-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 transition-colors">
+                                        <span className="material-symbols-outlined text-gray-500 text-[18px]">person</span>
+                                        <span className="text-text-main text-sm font-medium dark:text-gray-200">Todos los Usuarios</span>
+                                        <span className="material-symbols-outlined text-gray-500 text-[18px]">expand_more</span>
+                                    </button>
+                                </div>
+                                <div className="relative group">
+                                    <button className="flex h-9 items-center gap-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 transition-colors">
+                                        <span className="material-symbols-outlined text-gray-500 text-[18px]">public</span>
+                                        <span className="text-text-main text-sm font-medium dark:text-gray-200">Todas las Regiones</span>
+                                        <span className="material-symbols-outlined text-gray-500 text-[18px]">expand_more</span>
+                                    </button>
+                                </div>
+                                <div className="ml-auto flex items-center gap-2 text-sm text-text-secondary">
+                                    <span className="material-symbols-outlined text-[16px]">sync</span>
+                                    <span>Actualizado hace 5 min</span>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div className="flex-1 overflow-y-auto p-4 md:p-8">
+                            <div className="max-w-[1400px] mx-auto flex flex-col gap-6 pb-10">
+                                {/* Stats Cards */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    {[
+                                        { title: "Usuarios Activos", value: "1,240", change: "+12%", icon: "group", color: "blue", trend: "up" },
+                                        { title: "Microcápsulas Completadas", value: "8,500", change: "+5%", icon: "school", color: "indigo", trend: "up" },
+                                        { title: "Tiempo Promedio", value: "12m 30s", change: "-2%", icon: "timer", color: "orange", trend: "down" },
+                                        { title: "Nuevos Registros", value: "320", change: "+8%", icon: "person_add", color: "teal", trend: "up" }
+                                    ].map((stat, i) => (
+                                        <div key={i} className="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-shadow">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className={`p-2 bg-${stat.color}-50 dark:bg-${stat.color}-900/20 rounded-lg text-${stat.color}-600`}>
+                                                    <span className="material-symbols-outlined">{stat.icon}</span>
+                                                </div>
+                                                <span className={`flex items-center text-xs font-bold ${stat.trend === 'up' ? 'text-green-600 bg-green-50 dark:bg-green-900/20' : 'text-red-500 bg-red-50 dark:bg-red-900/20'} px-2 py-1 rounded-full`}>
+                                                    <span className="material-symbols-outlined text-[14px] mr-1">{stat.trend === 'up' ? 'trending_up' : 'trending_down'}</span> {stat.change}
+                                                </span>
+                                            </div>
+                                            <h3 className="text-text-secondary text-sm font-medium">{stat.title}</h3>
+                                            <p className="text-text-main dark:text-white text-3xl font-bold mt-1 tracking-tight">{stat.value}</p>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Charts Area */}
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                    <div className="lg:col-span-2 bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+                                        <div className="flex justify-between items-center mb-6">
+                                            <div>
+                                                <h3 className="text-lg font-bold text-institutional dark:text-white">Tendencia de Uso de la App</h3>
+                                                <p className="text-sm text-text-secondary">Sesiones diarias en el último mes</p>
+                                            </div>
+                                            <div className="text-2xl font-bold text-institutional dark:text-white">15,400 <span className="text-sm font-normal text-text-secondary">Sesiones</span></div>
+                                        </div>
+                                        <div className="relative h-64 w-full">
+                                            <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
+                                                <line stroke="#e5e7eb" strokeDasharray="2" strokeWidth="0.5" x1="0" x2="100" y1="0" y2="0"></line>
+                                                <line stroke="#e5e7eb" strokeDasharray="2" strokeWidth="0.5" x1="0" x2="100" y1="25" y2="25"></line>
+                                                <line stroke="#e5e7eb" strokeDasharray="2" strokeWidth="0.5" x1="0" x2="100" y1="50" y2="50"></line>
+                                                <line stroke="#e5e7eb" strokeDasharray="2" strokeWidth="0.5" x1="0" x2="100" y1="75" y2="75"></line>
+                                                <line stroke="#e5e7eb" strokeDasharray="2" strokeWidth="0.5" x1="0" x2="100" y1="100" y2="100"></line>
+                                                <defs>
+                                                    <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+                                                        <stop offset="0%" stopColor="#2563eb" stopOpacity="0.2"></stop>
+                                                        <stop offset="100%" stopColor="#2563eb" stopOpacity="0"></stop>
+                                                    </linearGradient>
+                                                </defs>
+                                                <path d="M0,80 Q10,70 20,75 T40,50 T60,40 T80,20 T100,30 V100 H0 Z" fill="url(#chartGradient)"></path>
+                                                <path d="M0,80 Q10,70 20,75 T40,50 T60,40 T80,20 T100,30" fill="none" stroke="#2563eb" strokeLinecap="round" strokeWidth="2" vectorEffect="non-scaling-stroke"></path>
+                                                <circle cx="80" cy="20" fill="#fff" r="1.5" stroke="#2563eb" strokeWidth="1" vectorEffect="non-scaling-stroke"></circle>
+                                            </svg>
+                                            <div className="absolute top-[10%] left-[76%] bg-institutional text-white text-xs py-1 px-2 rounded shadow-lg transform -translate-x-1/2">
+                                                22 May: 845 Sesiones
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-between mt-2 text-xs text-text-secondary font-medium">
+                                            <span>01 May</span><span>05 May</span><span>10 May</span><span>15 May</span><span>20 May</span><span>25 May</span><span>30 May</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col">
+                                        <div className="mb-4">
+                                            <h3 className="text-lg font-bold text-institutional dark:text-white">Usuarios por facultad</h3>
+                                            <p className="text-sm text-text-secondary">Distribución geográfica</p>
+                                        </div>
+                                        <div className="flex-1 flex items-center justify-center relative my-4">
+                                            <svg className="size-48 transform -rotate-90" viewBox="0 0 100 100">
+                                                <circle cx="50" cy="50" fill="transparent" r="40" stroke="#f1f5f9" strokeWidth="20"></circle>
+                                                <circle cx="50" cy="50" fill="transparent" r="40" stroke="#2563eb" strokeDasharray="100 251.2" strokeDashoffset="0" strokeWidth="20"></circle>
+                                                <circle cx="50" cy="50" fill="transparent" r="40" stroke="#2dd4bf" strokeDasharray="60 251.2" strokeDashoffset="-100" strokeWidth="20"></circle>
+                                                <circle cx="50" cy="50" fill="transparent" r="40" stroke="#6366f1" strokeDasharray="50 251.2" strokeDashoffset="-160" strokeWidth="20"></circle>
+                                                <circle cx="50" cy="50" fill="transparent" r="40" stroke="#fb923c" strokeDasharray="41.2 251.2" strokeDashoffset="-210" strokeWidth="20"></circle>
+                                            </svg>
+                                            <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
+                                                <span className="text-2xl font-bold text-institutional dark:text-white">Total</span>
+                                                <span className="text-sm text-text-secondary">100%</span>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2 text-sm mt-auto">
+                                            {[{color: "#2563eb", label: "FCSH (40%)"}, {color: "#2dd4bf", label: "FIEC (24%)"}, {color: "#6366f1", label: "FIMCP (20%)"}, {color: "#fb923c", label: "FICT (16%)"}].map((region, i) => (
+                                                <div key={i} className="flex items-center gap-2">
+                                                    <span className="size-3 rounded-full" style={{backgroundColor: region.color}}></span>
+                                                    <span className="text-text-main dark:text-gray-300">{region.label}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Progress */}
+                                <div className="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+                                    <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-2">
+                                        <div>
+                                            <h3 className="text-lg font-bold text-institutional dark:text-white">Progreso por Microcápsula</h3>
+                                            <p className="text-sm text-text-secondary">Tasa de finalización de módulos educativos</p>
+                                        </div>
+                                        <button className="text-primary text-sm font-semibold hover:underline">Ver todo el reporte</button>
+                                    </div>
+                                    <div className="space-y-5">
+                                        {[
+                                            {name: "Espol en el mundo", val: 92, op: ""},
+                                            {name: "Datos de Guayaquil y de Ecuador", val: 78, op: "/80"},
+                                            {name: "Protocolos en otros países", val: 65, op: "/60"},
+                                            {name: "Indicadores de Espol", val: 45, op: "/40"}
+                                        ].map((item, i) => (
+                                            <div key={i}>
+                                                <div className="flex justify-between mb-1">
+                                                    <span className="text-sm font-medium text-text-main dark:text-white">{item.name}</span>
+                                                    <span className="text-sm font-bold text-text-main dark:text-white">{item.val}%</span>
+                                                </div>
+                                                <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2.5">
+                                                    <div className={`bg-primary${item.op} h-2.5 rounded-full`} style={{width: `${item.val}%`}}></div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+
+        // --- Screen 2: Fuentes Oficiales ---
+
+        const FuentesOficiales = () => {
+            return (
+                <div className="flex h-screen overflow-hidden">
+                    <Sidebar active="/fuentes" />
+                    <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-background-light dark:bg-background-dark">
+                        <MobileHeader />
+                        
+                        <header className="bg-surface-light dark:bg-surface-dark border-b border-gray-200 dark:border-gray-800 px-8 py-4 shrink-0 justify-between items-center z-10 hidden lg:flex">
+                            <div className="flex flex-col gap-1">
+                                <nav className="flex items-center gap-2 text-sm text-text-secondary mb-1">
+                                    <Link to="/" className="hover:text-primary transition-colors">Inicio</Link>
+                                    <span className="material-symbols-outlined" style={{fontSize: '14px'}}>chevron_right</span>
+                                    <span className="text-primary font-medium">Fuentes Oficiales</span>
+                                </nav>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 text-text-secondary transition-colors relative">
+                                    <span className="material-symbols-outlined">notifications</span>
+                                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-surface-dark"></span>
+                                </button>
+                            </div>
+                        </header>
+
+                        <div className="flex-1 overflow-y-auto p-4 md:p-8">
+                            <div className="max-w-[1200px] mx-auto flex flex-col gap-8 pb-10">
+                                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                                    <div className="flex flex-col gap-2 max-w-2xl">
+                                        <h1 className="text-institutional dark:text-white text-3xl font-extrabold leading-tight tracking-tight">Gestión de Fuentes Oficiales</h1>
+                                        <p className="text-text-secondary text-base">Administre los enlaces de referencia y fuentes de datos externas.</p>
+                                    </div>
+                                    <button className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-lg shadow-sm hover:shadow-md transition-all font-bold text-sm">
+                                        <span className="material-symbols-outlined" style={{fontSize: '20px'}}>add</span>
+                                        Agregar Nueva Fuente
+                                    </button>
+                                </div>
+
+                                <div className="bg-surface-light dark:bg-surface-dark rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-800 flex flex-wrap items-center gap-4">
+                                    <div className="flex-1 min-w-[300px] relative">
+                                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none">search</span>
+                                        <input className="w-full pl-10 pr-4 py-2.5 bg-background-light dark:bg-background-dark border-none rounded-lg text-text-main dark:text-white placeholder:text-text-secondary focus:ring-2 focus:ring-primary/50 text-sm font-medium" placeholder="Buscar por nombre de fuente o URL..." type="text"/>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <div className="relative">
+                                            <select className="appearance-none bg-background-light dark:bg-background-dark text-text-main dark:text-white pl-4 pr-10 py-2.5 rounded-lg text-sm font-medium border-none focus:ring-2 focus:ring-primary/50 cursor-pointer">
+                                                <option>Todos los Estados</option>
+                                                <option>Activos</option>
+                                                <option>Inactivos</option>
+                                            </select>
+                                            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none" style={{fontSize: '20px'}}>expand_more</span>
+                                        </div>
+                                        <button className="p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-text-secondary hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-primary transition-colors" title="Exportar CSV">
+                                            <span className="material-symbols-outlined">download</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead>
+                                                <tr className="border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30">
+                                                    <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider">Nombre de la Fuente</th>
+                                                    <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider">Dirección URL</th>
+                                                    <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider w-32">Estado</th>
+                                                    <th className="px-6 py-4 text-xs font-bold text-text-secondary uppercase tracking-wider text-right w-40">Acciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                                                {[
+                                                    { name: "INEC", url: "https://www.inec.cr", status: "Activo", updated: "2 días atrás", color: "blue", icon: "analytics" },
+                                                    { name: "Banco Central", url: "https://www.bccr.fi.cr", status: "Activo", updated: "1 semana atrás", color: "orange", icon: "account_balance" },
+                                                    { name: "Indicadores Poblacionales", url: "https://datos.gob/poblacion", status: "Inactivo", updated: "Ayer", color: "purple", icon: "groups" },
+                                                    { name: "Ministerio de Salud", url: "https://www.ministeriodesalud.go.cr", status: "Activo", updated: "3 semanas atrás", color: "teal", icon: "medical_services" }
+                                                ].map((row, i) => (
+                                                    <tr key={i} className="group hover:bg-background-light dark:hover:bg-background-dark/50 transition-colors">
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`w-10 h-10 rounded-lg bg-${row.color}-50 dark:bg-${row.color}-900/20 flex items-center justify-center text-${row.color === 'blue' ? 'primary' : row.color + '-600'}`}>
+                                                                    <span className="material-symbols-outlined">{row.icon}</span>
+                                                                </div>
+                                                                <div className="flex flex-col">
+                                                                    <span className="text-sm font-bold text-text-main dark:text-white">{row.name}</span>
+                                                                    <span className="text-xs text-text-secondary">Actualizado: {row.updated}</span>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <a className="text-sm text-primary hover:text-blue-700 hover:underline flex items-center gap-1 max-w-[250px] truncate group/link" href="#">
+                                                                {row.url}
+                                                                <span className="material-symbols-outlined opacity-0 group-hover/link:opacity-100 transition-opacity" style={{fontSize: '14px'}}>open_in_new</span>
+                                                            </a>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                                                                row.status === 'Activo' 
+                                                                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800"
+                                                                : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600"
+                                                            }`}>
+                                                                {row.status}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-right">
+                                                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                <button className="p-2 rounded-lg text-text-secondary hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary transition-colors" title="Editar">
+                                                                    <span className="material-symbols-outlined" style={{fontSize: '20px'}}>edit</span>
+                                                                </button>
+                                                                <button className="p-2 rounded-lg text-text-secondary hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-colors" title="Eliminar">
+                                                                    <span className="material-symbols-outlined" style={{fontSize: '20px'}}>delete</span>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+                                        <span className="text-sm text-text-secondary">Mostrando <span className="font-medium text-text-main dark:text-white">1-4</span> de <span className="font-medium text-text-main dark:text-white">12</span> resultados</span>
+                                        <div className="flex gap-2">
+                                            <button className="px-3 py-1 text-sm font-medium text-white bg-primary rounded shadow-sm hover:bg-primary/90">1</button>
+                                            <button className="px-3 py-1 text-sm font-medium text-text-secondary bg-transparent rounded hover:bg-gray-100 dark:hover:bg-gray-800">2</button>
+                                            <button className="px-3 py-1 text-sm font-medium text-text-secondary bg-transparent rounded hover:bg-gray-100 dark:hover:bg-gray-800">3</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+
+        // --- Screen 3: Recursos y Plantillas ---
+
+        const Recursos = () => {
+            return (
+                <div className="flex h-screen overflow-hidden">
+                    <Sidebar active="/recursos" />
+                    <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-background-light dark:bg-background-dark">
+                        <MobileHeader />
+
+                        <div className="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark">
+                            <div className="max-w-[1400px] mx-auto p-6 md:p-8 flex flex-col gap-8">
+                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                    <div className="flex flex-col gap-1">
+                                        <h2 className="text-institutional dark:text-white text-3xl font-black leading-tight tracking-tight">Recursos y Plantillas</h2>
+                                        <p className="text-slate-500 dark:text-slate-400 text-base font-normal">Administra los materiales descargables, enlaces y guías de la plataforma.</p>
+                                    </div>
+                                    <button className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/30 flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-sm font-bold transition-all active:scale-95">
+                                        <span className="material-symbols-outlined text-[20px]">add</span>
+                                        <span>Agregar Recurso</span>
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {[
+                                        { icon: 'folder_zip', title: 'Total de Archivos', val: '142', sub: '+12%', color: 'blue', subColor: 'green', type: 'up' },
+                                        { icon: 'cloud_download', title: 'Descargas (Mes)', val: '1,204', sub: '+5%', color: 'indigo', subColor: 'green', type: 'up' },
+                                        { icon: 'hard_drive', title: 'Espacio Usado', val: '4.5 GB', sub: 'de 10 GB', color: 'orange', subColor: 'slate', type: 'text' }
+                                    ].map((card, i) => (
+                                        <div key={i} className="bg-white dark:bg-surface-dark rounded-xl p-6 border border-slate-200 dark:border-slate-700/50 shadow-sm flex flex-col gap-4 relative overflow-hidden group">
+                                            <div className="absolute right-0 top-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                                <span className="material-symbols-outlined text-6xl text-primary">{card.icon}</span>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <div className={`bg-${card.color}-50 dark:bg-${card.color}-900/20 p-2 rounded-lg text-${card.color === 'blue' ? 'primary' : card.color + '-600'}`}>
+                                                    <span className="material-symbols-outlined">{card.icon === 'folder_zip' ? 'description' : (card.icon === 'cloud_download' ? 'download' : 'storage')}</span>
+                                                </div>
+                                                <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">{card.title}</p>
+                                            </div>
+                                            <div className="flex items-end gap-3">
+                                                <p className="text-institutional dark:text-white text-3xl font-bold leading-none">{card.val}</p>
+                                                {card.type === 'up' ? (
+                                                    <span className={`text-green-600 dark:text-green-400 text-sm font-bold bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full flex items-center gap-1`}>
+                                                        <span className="material-symbols-outlined text-xs">trending_up</span> {card.sub}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-slate-400 text-sm font-medium">{card.sub}</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="flex flex-col md:flex-row gap-4">
+                                    <div className="flex-1 relative group">
+                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                            <span className="material-symbols-outlined text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+                                        </div>
+                                        <input className="block w-full pl-11 pr-4 py-3 bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-700 rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all dark:text-white shadow-sm" placeholder="Buscar por nombre, URL o categoría..." type="text"/>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button className="px-4 py-3 bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 transition-colors">
+                                            <span className="material-symbols-outlined text-[20px]">filter_list</span>
+                                            Filtrar
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden flex flex-col">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead>
+                                                <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700/50 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold">
+                                                    <th className="px-6 py-4 w-16 text-center">Tipo</th>
+                                                    <th className="px-6 py-4 min-w-[240px]">Nombre del Recurso</th>
+                                                    <th className="px-6 py-4 min-w-[200px]">URL de Origen</th>
+                                                    <th className="px-6 py-4">Categoría</th>
+                                                    <th className="px-6 py-4">Fecha</th>
+                                                    <th className="px-6 py-4 text-right">Acciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                                                {[
+                                                    { name: "Manual de Marca", sub: "Versión 2.5", type: "pdf", color: "red", cat: ".pdf", date: "12 Oct 2023", url: "https://docs.corp/manual-v2.pdf", catColor: "slate" },
+                                                    { name: "Plantilla Presentación FIEC", sub: "Diapositiva Maestra", type: "slideshow", color: "orange", cat: ".pptx", date: "10 Oct 2023", url: "https://slides.internal/deck-q3.pptx", catColor: "orange" },
+                                                    { name: "Formato de de Carta Espol", sub: "Plantilla .docx", type: "article", color: "blue", cat: ".docx", date: "08 Oct 2023", url: "https://drive.cloud/contract-legal.docx", catColor: "blue" },
+                                                    { name: "Indicadores de Espol", sub: "Archivo .xlsx", type: "table_chart", color: "green", cat: ".xlsx", date: "05 Oct 2023", url: "https://sheets.cloud/finances-q4.xlsx", catColor: "green" },
+                                                    { name: "Distrito 100", sub: "MP4 - 1080p", type: "video_file", color: "purple", cat: "Video", date: "01 Oct 2023", url: "https://vimeo.com/8329-tutorial", catColor: "purple" }
+                                                ].map((row, i) => (
+                                                    <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
+                                                        <td className="px-6 py-4 text-center">
+                                                            <div className={`size-10 rounded-full bg-${row.color}-50 dark:bg-${row.color}-900/20 flex items-center justify-center mx-auto text-${row.color}-600 dark:text-${row.color}-400`}>
+                                                                <span className="material-symbols-outlined">{row.type}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <p className="text-sm font-bold text-institutional dark:text-white">{row.name}</p>
+                                                            <p className="text-xs text-slate-500">{row.sub}</p>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center gap-2 max-w-[200px]">
+                                                                <span className="material-symbols-outlined text-slate-400 text-sm">link</span>
+                                                                <a className="text-sm text-primary hover:text-primary/80 truncate underline decoration-primary/30 underline-offset-2" href="#">{row.url}</a>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-${row.catColor}-100 dark:bg-${row.catColor}-900/30 text-${row.catColor}-700 dark:text-${row.catColor}-300`}>
+                                                                {row.cat}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">{row.date}</p>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center justify-end gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                <button className="p-2 rounded-lg text-slate-500 hover:text-primary hover:bg-primary/10 transition-colors" title="Editar">
+                                                                    <span className="material-symbols-outlined text-[20px]">edit</span>
+                                                                </button>
+                                                                <button className="p-2 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" title="Eliminar">
+                                                                    <span className="material-symbols-outlined text-[20px]">delete</span>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div className="px-6 py-4 bg-white dark:bg-surface-dark border-t border-slate-100 dark:border-slate-700/50 flex items-center justify-between">
+                                        <p className="text-sm text-slate-500">Mostrando 1 a 5 de 142 resultados</p>
+                                        <div className="flex gap-2">
+                                            <button className="px-3 py-1 text-sm bg-primary/10 text-primary font-bold rounded-md">1</button>
+                                            <button className="px-3 py-1 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors">2</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        // --- Screen 4: Cápsulas Informativas ---
+
+        const Capsulas = () => {
+            return (
+                <div className="flex h-screen overflow-hidden">
+                    <Sidebar active="/capsulas" />
+                    <main className="flex-1 flex flex-col h-full overflow-hidden relative bg-background-light dark:bg-background-dark">
+                        <MobileHeader />
+
+                        <div className="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark">
+                            <div className="container mx-auto px-4 py-8 max-w-7xl">
+                                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+                                    <div>
+                                        <h1 className="text-3xl md:text-4xl font-black text-primary-dark dark:text-white tracking-tight mb-2">Cápsulas Informativas</h1>
+                                        <p className="text-text-secondary-light dark:text-text-secondary-dark text-base md:text-lg">Gestiona el contenido educativo y su visibilidad en la aplicación móvil.</p>
+                                    </div>
+                                    <button className="flex items-center justify-center gap-2 bg-primary hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-sm shadow-blue-500/30 transition-all hover:shadow-blue-500/50">
+                                        <span className="material-symbols-outlined text-[20px]">add_circle</span>
+                                        <span>Nueva Cápsula</span>
+                                    </button>
+                                </div>
+
+                                <div className="bg-white dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark p-4 mb-6 shadow-sm">
+                                    <div className="flex flex-col md:flex-row gap-4 items-center">
+                                        <div className="relative flex-1 w-full">
+                                            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary-light dark:text-text-secondary-dark">search</span>
+                                            <input className="w-full pl-11 pr-4 py-3 rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-primary-light dark:text-text-primary-dark focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-text-secondary-light/70" placeholder="Buscar por título..." type="text"/>
+                                        </div>
+                                        <div className="flex w-full md:w-auto gap-4">
+                                            <div className="relative w-full md:w-48">
+                                                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary-light dark:text-text-secondary-dark text-[20px]">category</span>
+                                                <select className="w-full pl-10 pr-8 py-3 appearance-none rounded-lg border border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-primary-light dark:text-text-primary-dark focus:ring-2 focus:ring-primary focus:border-transparent outline-none cursor-pointer">
+                                                    <option value="">Todas las categorías</option>
+                                                    <option value="seguridad">Seguridad</option>
+                                                    <option value="salud">Salud</option>
+                                                </select>
+                                                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary-light dark:text-text-secondary-dark pointer-events-none text-[20px]">expand_more</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-white dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-sm overflow-hidden">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full min-w-[800px]">
+                                            <thead>
+                                                <tr className="bg-background-light dark:bg-background-dark/50 border-b border-border-light dark:border-border-dark">
+                                                    <th className="text-left py-4 px-6 text-xs font-bold uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark">Cápsula</th>
+                                                    <th className="text-left py-4 px-6 text-xs font-bold uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark w-48">Categoría</th>
+                                                    <th className="text-left py-4 px-6 text-xs font-bold uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark w-48">Fecha Act.</th>
+                                                    <th className="text-center py-4 px-6 text-xs font-bold uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark w-32">Visible en App</th>
+                                                    <th className="text-right py-4 px-6 text-xs font-bold uppercase tracking-wider text-text-secondary-light dark:text-text-secondary-dark w-32">Acciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-border-light dark:divide-border-dark">
+                                                {[
+                                                    { id: '001', title: 'Espol en el mundo', cat: 'Espol', date: '03 mar, 2026', checked: false, icon: 'security', color: 'orange' },
+                                                    { id: '002', title: 'Datos de Guayaquil y de Ecuador', cat: 'País', date: '20 mar, 2026', checked: true, icon: 'health_and_safety', color: 'green' },
+                                                    { id: '003', title: 'Protocolos en otros países', cat: 'Extranjero', date: '15 abr, 2026', checked: true, icon: 'verified_user', color: 'blue' },
+                                                    { id: '004', title: 'Indicadores de Espol', cat: 'Datos', date: '10 may, 2026', checked: false, icon: 'waving_hand', color: 'purple' }
+                                                ].map((row, i) => (
+                                                    <tr key={i} className="hover:bg-background-light/50 dark:hover:bg-surface-dark/50 transition-colors group">
+                                                        <td className="py-4 px-6">
+                                                            <div className="flex items-center gap-4">
+                                                                <div className={`w-12 h-12 rounded-lg bg-${row.color}-100 dark:bg-${row.color}-900/30 flex items-center justify-center flex-shrink-0 text-${row.color}-600 dark:text-${row.color}-400`}>
+                                                                    <span className="material-symbols-outlined">{row.icon}</span>
+                                                                </div>
+                                                                <div>
+                                                                    <h3 className="font-bold text-primary-dark dark:text-white text-sm">{row.title}</h3>
+                                                                    <p className="text-xs text-text-secondary-light dark:text-text-secondary-dark mt-0.5">ID: #CAP-{row.id}</p>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-4 px-6">
+                                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-${row.color}-100 text-${row.color}-800 dark:bg-${row.color}-900/30 dark:text-${row.color}-300`}>
+                                                                {row.cat}
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-4 px-6 text-sm text-text-secondary-light dark:text-text-secondary-dark">
+                                                            {row.date}
+                                                        </td>
+                                                        <td className="py-4 px-6 text-center">
+                                                            <div className="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                                                                <input defaultChecked={row.checked} className="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-gray-300 appearance-none cursor-pointer transition-all duration-300 ease-in-out focus:ring-0 focus:ring-offset-0 checked:right-0 checked:border-primary" id={`toggle${i}`} name="toggle" type="checkbox"/>
+                                                                <label className="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer transition-colors duration-300 ease-in-out" htmlFor={`toggle${i}`}></label>
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-4 px-6 text-right">
+                                                            <button className="text-text-secondary-light hover:text-primary dark:text-text-secondary-dark dark:hover:text-primary transition-colors p-2 rounded-full hover:bg-background-light dark:hover:bg-background-dark">
+                                                                <span className="material-symbols-outlined text-[20px]">edit</span>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div className="flex items-center justify-between mt-6 px-6 pb-6">
+                                        <p className="text-sm text-text-secondary-light dark:text-text-secondary-dark">Mostrando <span className="font-bold text-text-primary-light dark:text-white">1</span> a <span className="font-bold text-text-primary-light dark:text-white">4</span> de <span className="font-bold text-text-primary-light dark:text-white">12</span> resultados</p>
+                                        <div className="flex gap-2">
+                                            <button className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary text-white text-sm font-bold shadow-sm shadow-blue-500/30">1</button>
+                                            <button className="w-9 h-9 flex items-center justify-center rounded-lg border border-border-light dark:border-border-dark text-text-primary-light dark:text-white hover:bg-white dark:hover:bg-surface-dark text-sm font-medium transition-colors">2</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        const App = () => {
+            return (
+                <MemoryRouter>
+                    <Routes>
+                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/fuentes" element={<FuentesOficiales />} />
+                        <Route path="/recursos" element={<Recursos />} />
+                        <Route path="/capsulas" element={<Capsulas />} />
+                        <Route path="*" element={<Dashboard />} />
+                    </Routes>
+                </MemoryRouter>
+            );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
