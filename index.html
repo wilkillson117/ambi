@@ -94,8 +94,8 @@
                         <div className="flex items-center gap-3 mb-6">
                             <div className="bg-center bg-no-repeat bg-cover rounded-full size-10 border-2 border-primary" style={{backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuDG6Qxl3fKGn8j3GTto5V_PlfDzldoeWaNkYHC0T4kHz2i6jLUvx4Zj1rHgV9yMkHyvFvEMR4gHBcbtFItDl_MDvvXdIKeBFX8-s1Ltx5TJQxKav1URTAnaxnjy0YDiPjk2-W4Y-wcxwUM3_IDGbkB_A_RezgCaULQvdmQzvhq6DgjkS9WhLkKCIwT9XMjzuiwOM3H25_BPEcxgx0sxaW-C67VKp9uPCtHQ-lCgVQalF9km8i3_acm6Ysn7ucvJLEgxnP1jf9hxz80H")'}}></div>
                             <div className="flex flex-col overflow-hidden">
-                                <h1 className="text-white text-sm font-semibold truncate">Admin User</h1>
-                                <p className="text-white/60 text-xs truncate">Gestión de Recursos</p>
+                                <h1 className="text-white text-sm font-semibold truncate">User</h1>
+                                <p className="text-white/60 text-xs truncate">Administrador del Sistema</p>
                             </div>
                         </div>
                     </div>
@@ -181,7 +181,7 @@
                                 <div className="relative group">
                                     <button className="flex h-9 items-center gap-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 px-3 transition-colors">
                                         <span className="material-symbols-outlined text-gray-500 text-[18px]">public</span>
-                                        <span className="text-text-main text-sm font-medium dark:text-gray-200">Todas las Regiones</span>
+                                        <span className="text-text-main text-sm font-medium dark:text-gray-200">Todas las Facultades</span>
                                         <span className="material-symbols-outlined text-gray-500 text-[18px]">expand_more</span>
                                     </button>
                                 </div>
@@ -199,7 +199,7 @@
                                     {[
                                         { title: "Usuarios Activos", value: "1,240", change: "+12%", icon: "group", color: "blue", trend: "up" },
                                         { title: "Microcápsulas Completadas", value: "8,500", change: "+5%", icon: "school", color: "indigo", trend: "up" },
-                                        { title: "Tiempo Promedio", value: "12m 30s", change: "-2%", icon: "timer", color: "orange", trend: "down" },
+                                        { title: "Tiempo Promedio", value: "2m 30s", change: "-2%", icon: "timer", color: "orange", trend: "down" },
                                         { title: "Nuevos Registros", value: "320", change: "+8%", icon: "person_add", color: "teal", trend: "up" }
                                     ].map((stat, i) => (
                                         <div key={i} className="bg-surface-light dark:bg-surface-dark p-5 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-shadow">
@@ -389,10 +389,10 @@
                                             </thead>
                                             <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                                                 {[
-                                                    { name: "INEC", url: "https://www.inec.cr", status: "Activo", updated: "2 días atrás", color: "blue", icon: "analytics" },
-                                                    { name: "Banco Central", url: "https://www.bccr.fi.cr", status: "Activo", updated: "1 semana atrás", color: "orange", icon: "account_balance" },
+                                                    { name: "INEC", url: "https://www.ecuadorencifras.gob.ec/", status: "Activo", updated: "2 días atrás", color: "blue", icon: "analytics" },
+                                                    { name: "Turismo Ecuador", url: "https://ecuador.travel", status: "Activo", updated: "1 semana atrás", color: "orange", icon: "account_balance" },
                                                     { name: "Indicadores Poblacionales", url: "https://datos.gob/poblacion", status: "Inactivo", updated: "Ayer", color: "purple", icon: "groups" },
-                                                    { name: "Ministerio de Salud", url: "https://www.ministeriodesalud.go.cr", status: "Activo", updated: "3 semanas atrás", color: "teal", icon: "medical_services" }
+                                                    { name: "Ministerio de Salud", url: "https://www.msp.gob.ec", status: "Activo", updated: "3 semanas atrás", color: "teal", icon: "medical_services" }
                                                 ].map((row, i) => (
                                                     <tr key={i} className="group hover:bg-background-light dark:hover:bg-background-dark/50 transition-colors">
                                                         <td className="px-6 py-4">
